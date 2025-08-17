@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digi - Your Digital Assistant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="assistant-container">
+            <div class="face-container">
+                <canvas id="face-canvas" width="400" height="400"></canvas>
+                <div class="face-overlay">
+                    <div class="eye left-eye"></div>
+                    <div class="eye right-eye"></div>
+                    <div class="mouth"></div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="talk-btn" class="talk-button">
+                    <span class="mic-icon">🎤</span>
+                    <span class="btn-text">Talk to Digi</span>
+                </button>
+                <button id="stop-btn" class="stop-button" style="display: none;">
+                    <span class="stop-icon">⏹️</span>
+                    <span class="btn-text">Stop</span>
+                </button>
+            </div>
+            
+            <div class="status-display">
+                <div id="status-text">Hi! I'm Digi, your digital assistant. Click the button to start talking!</div>
+                <div id="transcript" class="transcript"></div>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <h2>About Digi</h2>
+            <p>Digi is an AI-powered digital assistant inspired by Pal from "The Mitchells vs. The Machines". 
+               Speak to Digi and watch as the face animates to match the conversation!</p>
+            <div class="features">
+                <div class="feature">🎤 Voice Recognition</div>
+                <div class="feature">🗣️ Text-to-Speech</div>
+                <div class="feature">🤖 AI Responses</div>
+                <div class="feature">😊 Animated Face</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
