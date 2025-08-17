@@ -43,9 +43,8 @@ class DigiAssistant {
         
         this.recognition.onstart = () => {
             this.isListening = true;
+            this.setState('listening');
             this.updateUI();
-            this.statusText.textContent = 'Listening... Speak now!';
-            this.faceContainer.classList.add('listening');
         };
         
         this.recognition.onresult = (event) => {
@@ -71,12 +70,13 @@ class DigiAssistant {
         this.recognition.onerror = (event) => {
             console.error('Speech recognition error:', event.error);
             this.statusText.textContent = `Error: ${event.error}. Please try again.`;
+            this.setState('idle');
             this.stopListening();
         };
         
         this.recognition.onend = () => {
             this.isListening = false;
-            this.faceContainer.classList.remove('listening');
+            this.setState('idle');
             this.updateUI();
         };
     }
@@ -96,6 +96,32 @@ class DigiAssistant {
     initializeFaceAnimation() {
         this.drawBaseFace();
         this.animationFrame = null;
+    }
+    
+    setState(state) {
+        // Remove all states
+        this.faceContainer.classList.remove('listening', 'thinking', 'speaking');
+        this.mouth.classList.remove('talking');
+        
+        // Apply new state
+        if (state !== 'idle') {
+            this.faceContainer.classList.add(state);
+            if (state === 'speaking') {
+                this.mouth.classList.add('talking');
+            }
+        }
+        
+        // Update status text based on state
+        const statusMessages = {
+            'idle': 'Ready to chat! Click the button to start.',
+            'listening': 'Listening... Speak now!',
+            'thinking': 'Thinking...',
+            'speaking': 'Speaking...'
+        };
+        
+        if (statusMessages[state]) {
+            this.statusText.textContent = statusMessages[state];
+        }
     }
     
     drawBaseFace() {
@@ -139,20 +165,18 @@ class DigiAssistant {
             this.synthesis.cancel();
         }
         this.isSpeaking = false;
-        this.faceContainer.classList.remove('speaking');
-        this.mouth.classList.remove('talking');
+        this.setState('idle');
         this.updateUI();
     }
     
     stopAll() {
         this.stopListening();
         this.stopSpeaking();
-        this.statusText.textContent = 'Ready to chat! Click the button to start.';
+        this.setState('idle');
     }
     
     async processUserInput(input) {
-        this.statusText.textContent = 'Thinking...';
-        this.faceContainer.classList.add('thinking');
+        this.setState('thinking');
         
         try {
             const response = await this.getAIResponse(input);
@@ -161,8 +185,6 @@ class DigiAssistant {
             console.error('Error getting AI response:', error);
             this.speak("I'm sorry, I'm having trouble connecting to my brain right now. Could you try again?");
         }
-        
-        this.faceContainer.classList.remove('thinking');
     }
     
     async getAIResponse(input) {
@@ -215,41 +237,43 @@ class DigiAssistant {
         this.currentUtterance.pitch = 1.1;
         this.currentUtterance.volume = 0.8;
         
-        // Try to find a female voice
+        // Try to find a suitable voice (prefer female voices for Alexa-like experience)
         const voices = this.synthesis.getVoices();
-        const femaleVoice = voices.find(voice => 
-            voice.name.toLowerCase().includes('female') || 
-            voice.name.toLowerCase().includes('woman') ||
-            voice.name.toLowerCase().includes('samantha') ||
-            voice.name.toLowerCase().includes('karen') ||
-            voice.name.toLowerCase().includes('susan')
-        );
-        
-        if (femaleVoice) {
-            this.currentUtterance.voice = femaleVoice;
+        if (voices.length > 0) {
+            const femaleVoice = voices.find(voice => 
+                voice.name.toLowerCase().includes('female') || 
+                voice.name.toLowerCase().includes('woman') ||
+                voice.name.toLowerCase().includes('samantha') ||
+                (voice.lang.includes('en') && voice.name.toLowerCase().includes('karen'))
+            );
+            
+            if (femaleVoice) {
+                this.currentUtterance.voice = femaleVoice;
+            } else {
+                // Fallback to first English voice if available
+                const englishVoice = voices.find(voice => voice.lang.includes('en'));
+                if (englishVoice) {
+                    this.currentUtterance.voice = englishVoice;
+                }
+            }
         }
         
         this.currentUtterance.onstart = () => {
             this.isSpeaking = true;
-            this.faceContainer.classList.add('speaking');
-            this.mouth.classList.add('talking');
-            this.statusText.textContent = 'Speaking...';
+            this.setState('speaking');
             this.updateUI();
         };
         
         this.currentUtterance.onend = () => {
             this.isSpeaking = false;
-            this.faceContainer.classList.remove('speaking');
-            this.mouth.classList.remove('talking');
-            this.statusText.textContent = 'Ready to chat! Click the button to start.';
+            this.setState('idle');
             this.updateUI();
         };
         
         this.currentUtterance.onerror = (event) => {
             console.error('Speech synthesis error:', event);
             this.isSpeaking = false;
-            this.faceContainer.classList.remove('speaking');
-            this.mouth.classList.remove('talking');
+            this.setState('idle');
             this.updateUI();
         };
         
