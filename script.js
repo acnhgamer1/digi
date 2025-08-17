@@ -126,23 +126,21 @@ class DigiAssistant {
     
     drawBaseFace() {
         const ctx = this.ctx;
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
         
         // Clear canvas
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Draw subtle background pattern
+        // Draw subtle static background pattern
         ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        // Create a consistent pattern using fixed positions
         for (let i = 0; i < 20; i++) {
+            const angle = (i / 20) * Math.PI * 2;
+            const radius = 50 + (i % 3) * 30;
+            const x = this.canvas.width / 2 + Math.cos(angle) * radius;
+            const y = this.canvas.height / 2 + Math.sin(angle) * radius;
+            
             ctx.beginPath();
-            ctx.arc(
-                Math.random() * this.canvas.width,
-                Math.random() * this.canvas.height,
-                Math.random() * 3,
-                0,
-                2 * Math.PI
-            );
+            ctx.arc(x, y, 1 + (i % 3), 0, 2 * Math.PI);
             ctx.fill();
         }
     }
@@ -296,10 +294,15 @@ class DigiAssistant {
 
 // Initialize the assistant when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Wait a bit for voices to load
-    setTimeout(() => {
-        window.digi = new DigiAssistant();
-    }, 100);
+    const initializeWhenReady = () => {
+        const voices = speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            window.digi = new DigiAssistant();
+        } else {
+            setTimeout(initializeWhenReady, 50);
+        }
+    };
+    initializeWhenReady();
 });
 
 // Handle voices loading
